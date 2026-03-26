@@ -63,5 +63,5 @@ jobs:
             PYTORCH_VERSION=v2.11.0-1-g71f838ebd5b
             INSTALL_CHANNEL=whl
             TRITON_VERSION=
-            BUILD_TYPE=dev
+            BUILD_TYPE=official
             CMAKE_VARS=""
