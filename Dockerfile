@@ -10,7 +10,7 @@ ARG BASE_IMAGE=ubuntu:24.04
 FROM ${BASE_IMAGE} as dev-base
 # [dev-base 1/5] FROM docker.io/library/ubuntu:24.04@sha256:186072bba1b2f436cbb91ef2567abca677337cfc786c86e107d25b7072feef0c
 
-RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+RUN set -x && apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
         build-essential \
         ca-certificates \
         ccache \
@@ -69,7 +69,7 @@ ARG INSTALL_CHANNEL=whl/nightly
 ARG TARGETPLATFORM
 
 # INSTALL_CHANNEL whl - release, whl/nightly - nightly, whl/test - test channels
-RUN case ${TARGETPLATFORM} in \
+RUN set -x && case ${TARGETPLATFORM} in \
          "linux/arm64")  pip3 install --extra-index-url https://download.pytorch.org/whl/cpu/ torch torchvision torchaudio ;; \
          *)              pip3 install --index-url https://download.pytorch.org/${INSTALL_CHANNEL}/${CUDA_PATH#.}/ torch torchvision torchaudio ;; \
     esac
@@ -82,7 +82,7 @@ RUN case ${TARGETPLATFORM} in \
 RUN pip3 install torchelastic
 # [pytorch-installs 2/3] RUN pip3 install torchelastic
 
-RUN IS_CUDA=$(python3 -c 'import torch ; print(torch.cuda._is_compiled())'); \
+RUN set -x && IS_CUDA=$(python3 -c 'import torch ; print(torch.cuda._is_compiled())'); \
     echo "Is torch compiled with cuda: ${IS_CUDA}"; \
     if test "${IS_CUDA}" != "True" -a ! -z "${CUDA_VERSION}"; then \
         exit 1; \
@@ -151,7 +151,7 @@ ARG BUILD_TYPE
 
 # Install CUDA toolkit for devel images
 # Only runs when building devel-image target (BUILD_TYPE != official)
-RUN if [ "${BUILD_TYPE}" = "dev" ] && [ -n "${CUDA_VERSION}" ]; then \
+RUN set -x && if [ "${BUILD_TYPE}" = "dev" ] && [ -n "${CUDA_VERSION}" ]; then \
     apt-get update && apt-get install -y --no-install-recommends \
         wget gnupg2 ca-certificates && \
     # Add NVIDIA repository
