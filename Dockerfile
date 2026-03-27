@@ -25,6 +25,7 @@ RUN set -x && apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -
         python3-dev && \
     rm -rf /var/lib/apt/lists/*
 # [dev-base 2/5] RUN
+# set -x &&
 # apt-get update &&
 # DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends build-essential ca-certificates ccache cmake curl git libjpeg-dev libpng-dev python3 python3-pip python-is-python3 python3-dev &&
 # rm -rf /var/lib/apt/lists/*
@@ -74,9 +75,10 @@ RUN set -x && case ${TARGETPLATFORM} in \
          *)              pip3 install --index-url https://download.pytorch.org/${INSTALL_CHANNEL}/${CUDA_PATH#.}/ torch torchvision torchaudio ;; \
     esac
 # [pytorch-installs 1/3] RUN
+# set -x &&
 # case linux/amd64 in
-#     "linux/arm64")  pip3 install --extra-index-url https://download.pytorch.org/whl/cpu/ torch torchvision torchaudio ;;
-#     *)              pip3 install --index-url https://download.pytorch.org/whl/cu121/ torch torchvision torchaudio ;;
+#     "linux/arm64") pip3 install --extra-index-url https://download.pytorch.org/whl/cpu/ torch torchvision torchaudio ;;
+#     *)             pip3 install --index-url https://download.pytorch.org/whl/cu121/ torch torchvision torchaudio ;;
 # esac
 
 RUN pip3 install torchelastic
@@ -88,11 +90,16 @@ RUN set -x && IS_CUDA=$(python3 -c 'import torch ; print(torch.cuda._is_compiled
         exit 1; \
     fi
 # [pytorch-installs 3/3] RUN
+# set -x &&
 # IS_CUDA=$(python3 -c 'import torch ; print(torch.cuda._is_compiled())');
 # echo "Is torch compiled with cuda: ${IS_CUDA}";
 # if test "${IS_CUDA}" != "True" -a ! -z "${CUDA_VERSION}"; then
 #     exit 1;
 # fi
+# python3 -c import torch ; print(torch.cuda._is_compiled())
+# IS_CUDA=True
+# echo Is torch compiled with cuda: True
+# test True != True -a ! -z
 
 FROM ${BASE_IMAGE} as official
 
@@ -168,20 +175,28 @@ RUN set -x && if [ "${BUILD_TYPE}" = "dev" ] && [ -n "${CUDA_VERSION}" ]; then \
     ldconfig; \
 fi
 # [dev 1/4] RUN
+# set -x &&
 # if [ "dev" = "dev" ] && [ -n "12.1.1" ]; then
-#     apt-get update &&
-#     apt-get install -y --no-install-recommends wget gnupg2 ca-certificates &&
+#     apt-get update && apt-get install -y --no-install-recommends wget gnupg2 ca-certificates &&
 #     NVARCH=$(uname -m | sed 's/x86_64/x86_64/' | sed 's/aarch64/sbsa/') &&
 #     wget -qO - https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/${NVARCH}/3bf863cc.pub | apt-key add - &&
 #     echo "deb https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/${NVARCH} /" > /etc/apt/sources.list.d/cuda.list &&
 #     CUDA_PKG_VERSION=$(echo 12.1.1 | cut -d'.' -f1,2 | tr '.' '-') &&
-#     apt-get update &&
-#     apt-get install -y --no-install-recommends cuda-toolkit-${CUDA_PKG_VERSION} &&
+#     apt-get update && apt-get install -y --no-install-recommends cuda-toolkit-${CUDA_PKG_VERSION} &&
 #     apt-get clean &&
 #     rm -rf /var/lib/apt/lists/* &&
 #     echo "/usr/local/cuda/lib64" >> /etc/ld.so.conf.d/cuda.conf &&
 #     ldconfig;
 # fi
+# uname -m
+# sed s/aarch64/sbsa/
+# sed s/x86_64/x86_64/
+# NVARCH=x86_64
+# wget -qO - https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64/3bf863cc.pub | apt-key add -
+# echo deb https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64 /
+# echo 12.1.1 | cut -d. -f1,2 |  tr . -
+# CUDA_PKG_VERSION=12-1
+# apt-get install -y --no-install-recommends cuda-toolkit-12-1
 
 # Set CUDA environment (always set, needed even if CUDA already in base)
 ENV PATH=/usr/local/cuda/bin:${PATH}
